@@ -1,119 +1,101 @@
 package hw7;
+
 public class HashTable {
+
+	private class HashNode implements Comparable<HashNode> {
+
+		Entry entry;
+		HashNode next;
+		
+		public HashNode(Entry entry) {
+			this.entry = entry;
+		}
+
+		@Override
+		public int compareTo(HashNode o) {
+			return this.entry.getWord().toLowerCase().compareTo(o.entry.getWord().toLowerCase());
+		}
+		
+	}
 	
-	private HashNode[] hashtable;
-	public int size;
-	public int capacity;
-	public double LF;
+	private int size, capacity;
+	private HashNode[] hashTable;
+	private double maxLoadFactor;
 	
 	public HashTable() {
-		
-		this.hashtable = new HashNode[19];
+		this.hashTable = new HashNode[16];
 		this.size = 0;
-		this.capacity = 19;
-		this.LF = 0;
+		this.capacity = 16;
+		this.maxLoadFactor = 0.75;
 	}
 	
-	public void add(String word) {
+	public void add(Entry e) {
 		
-		if (this.LF >= 0.9) {
-			createNewTable();
+		if (loadFactor() > maxLoadFactor)
+				resize(capacity*2);
+		
+		HashNode newNode = new HashNode(e);
+		int index = e.hashCode();
+		index = index & 0xFFFFFFF;
+		index = index % capacity;
+		
+		if (!contain(newNode, index)) {
+			newNode.next = hashTable[index];
+			hashTable[index] = newNode;
+			size++;
 		}
 		
-		Entry entry = new Entry(word);
-		
-		int index = Math.abs(entry.hashCode())%capacity;
-			
-		//System.out.println(index+":"+word);
-		
-		if (this.hashtable[index] == null) {
-			
-			//System.out.println("hey");
-			this.hashtable[index] = new HashNode(entry);
-			this.size++;
-			this.LF = size*1.0/capacity;
-			
-		} else {
-			
-			//if doesnt contain that word
-			if (!this.contains(entry)) {
-				
-				//System.out.println("hey");
-				HashNode newNode = new HashNode(entry);
-				newNode.next = this.hashtable[index];
-				this.hashtable[index] = newNode;
-				this.size++;
-				this.LF = size*1.0/capacity;
-				
-			} else {
-				//contains. If contains then dont add and just increment the count.
-				
-				HashNode curr = this.hashtable[index];
-				
-				while (curr != null) {
-					if (curr.data == entry) {
-						curr.data.incrementCount();
-						this.size++;
-						this.LF = size*1.0/capacity;
-						break;
-					}
-					
-					curr = curr.next;
-				}
-				
-			}
-			
-		}
 		
 	}
-	
-	private void createNewTable() {
 
-		//double capacity and then set it to the nearest prime to that num
-		this.capacity = capacity*3;
+	private void resize(int i) {
 		
-		HashNode[] oldHashTable = this.hashtable;
-		this.hashtable = new HashNode[capacity];
+		this.capacity = i;
 		
-		this.LF = size*1.0/capacity;
-		//rehash into new table
+		HashNode[] oldHashTable = hashTable;
+		
+		hashTable = new HashNode[i];
+		
+		int oldSize = size; 
+		
 		for (int a = 0; a < oldHashTable.length; a++) {
-			if (oldHashTable[a]!=null) {
+			
+			if (oldHashTable[a] == null) {
+				continue;
+			} else {
 				
-				HashNode curr = oldHashTable[a];
+				HashNode curr  = oldHashTable[a];
 				
-				while (curr != null) {
-					
-					this.add(curr.data.getWord());
+				while (curr!=null) {
+					this.add(curr.entry);
 					curr = curr.next;
-					
 				}
-				//this.add(oldHashTable[a].data.getWord());
+				
+				continue;
+				
 			}
+			
 		}
 		
+		size = oldSize;
 	}
 
-	public boolean contains(Entry entry) {
+	private double loadFactor() {
+		return size*1.0/capacity;
+	}
+	
+	public boolean contain(HashNode hashNode, int index) {
 		
-		//System.out.println("inside contain");
-		
-		int index = Math.abs(entry.hashCode())%capacity;
-		
-		///System.out.println(index);
-		
-		if (this.hashtable[index] == null) {
-			return false;
-		} else {
+		if (hashTable[index] != null) {
 			
-			HashNode curr = this.hashtable[index];
+			HashNode curr = hashTable[index];
 			
-			while (curr != null) {
-				
-				if (curr.data.getWord().equals(entry.getWord())) {
+			while (curr!=null) {
+				if (curr.compareTo(hashNode) == 0) {
+					curr.entry.incrementCount();
+					size++;
 					return true;
-				} 
-				
+				}
 				curr = curr.next;
 			}
 		}
@@ -122,16 +104,26 @@ public class HashTable {
 		
 	}
 	
-	private class HashNode {
+	
+	public int size() {
+		return size;
+	}	
+	
+	public String toString() {
 		
-		Entry data;
-		HashNode next;
+		int count = 0;
 		
-		public HashNode(Entry data) {
-			this.data = data;
-			this.next = null;
+		StringBuilder sb = new StringBuilder("");
+		
+		for (int a = 0; a < capacity; a++) {
+			if (hashTable[a]!=null) {
+				sb.append(hashTable[a].entry.getWord()+":"+hashTable[a].entry.getCount()+"\n");
+				count += hashTable[a].entry.getCount();
+			}
 		}
 		
+		sb.append("count: "+count); //some loss of info?
+		return sb.toString();
 	}
 
 }

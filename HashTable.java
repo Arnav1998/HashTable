@@ -1,5 +1,8 @@
 package hw7;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 public class HashTable {
 
 	private class HashNode implements Comparable<HashNode> {
@@ -37,7 +40,7 @@ public class HashTable {
 		HashNode newNode = new HashNode(e);
 		int index = e.hashCode();
 		index = index & 0xFFFFFFF;
-		index = index % capacity;
+		index = index & (capacity-1);
 		
 		if (!contain(newNode, index)) {
 			newNode.next = hashTable[index];
@@ -56,7 +59,7 @@ public class HashTable {
 		
 		hashTable = new HashNode[i];
 		
-		int oldSize = size; 
+		this.size = 0; 
 		
 		for (int a = 0; a < oldHashTable.length; a++) {
 			
@@ -67,6 +70,11 @@ public class HashTable {
 				HashNode curr  = oldHashTable[a];
 				
 				while (curr!=null) {
+					
+					if (curr.entry.getCount() > 1) {
+						size += curr.entry.getCount() - 1;
+					}
+					
 					this.add(curr.entry);
 					curr = curr.next;
 				}
@@ -76,8 +84,7 @@ public class HashTable {
 			}
 			
 		}
-		
-		size = oldSize;
+
 	}
 
 	private double loadFactor() {
@@ -111,19 +118,48 @@ public class HashTable {
 	
 	public String toString() {
 		
+		this.sort();
+		
 		int count = 0;
 		
 		StringBuilder sb = new StringBuilder("");
 		
 		for (int a = 0; a < capacity; a++) {
 			if (hashTable[a]!=null) {
-				sb.append(hashTable[a].entry.getWord()+":"+hashTable[a].entry.getCount()+"\n");
-				count += hashTable[a].entry.getCount();
+				
+				HashNode curr = hashTable[a];
+				
+				while (curr != null) {
+					sb.append(curr.entry.getWord()+":"+curr.entry.getCount()+"\n");
+					count += curr.entry.getCount();
+					curr = curr.next;
+				}
 			}
 		}
 		
-		sb.append("count: "+count); //some loss of info?
+		sb.append("count: "+count);
 		return sb.toString();
+	}
+	
+	private void sort() {
+		
+		  Arrays.sort(hashTable, new Comparator<HashNode>() {
+
+			  @Override
+		        public int compare(HashNode o1, HashNode o2) {
+		            if (o1 == null && o2 == null) {
+		                return 0;
+		            }
+		            if (o1 == null) {
+		                return 1;
+		            }
+		            if (o2 == null) {
+		                return -1;
+		            }
+		            return o1.compareTo(o2);
+		        }
+			  
+		  });
 	}
 
 }

@@ -122,7 +122,7 @@ public class HashTable {
 		
 		int count = 0;
 		
-		StringBuilder sb = new StringBuilder("");
+		StringBuilder sb = new StringBuilder("HashTable: \n");
 		
 		for (int a = 0; a < capacity; a++) {
 			if (hashTable[a]!=null) {

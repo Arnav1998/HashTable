@@ -28,7 +28,7 @@ public class HashTable {
 	public HashTable() {
 		this.hashTable = new HashNode[16];
 		this.size = 0;
-		this.capacity = 16;
+		this.capacity = 16; //using powers of 2
 		this.maxLoadFactor = 0.75;
 	}
 	
@@ -117,12 +117,14 @@ public class HashTable {
 	}	
 	
 	public String toString() {
-		
+
 		this.sort();
+		
+        String formatter = "%-20s%-1d";
 		
 		int count = 0;
 		
-		StringBuilder sb = new StringBuilder("HashTable: \n");
+		StringBuilder sb = new StringBuilder();
 		
 		for (int a = 0; a < capacity; a++) {
 			if (hashTable[a]!=null) {
@@ -130,14 +132,14 @@ public class HashTable {
 				HashNode curr = hashTable[a];
 				
 				while (curr != null) {
-					sb.append(curr.entry.getWord()+":"+curr.entry.getCount()+"\n");
+					sb.append(String.format(formatter, curr.entry.getWord(), curr.entry.getCount()) + "\n");
 					count += curr.entry.getCount();
 					curr = curr.next;
 				}
 			}
 		}
 		
-		sb.append("count: "+count);
+		sb.append(String.format(formatter, "Word Count:", count));
 		return sb.toString();
 	}
 	
